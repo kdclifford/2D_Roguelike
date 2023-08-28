@@ -3,23 +3,15 @@
 
 #include <iostream>
 #include <time.h>
+#include "MapPoints.h"
+#include "EDirection.h"
 
-const int MapSize = 10;
-
-typedef enum ERoomType
-{
-	Empty = 0, // 10%
-	Item, // 5%
-	Hostile, // 35%
-	//Shop, // 1 per floor
-	Wall, // 50%
-	AmountOfRooms
-
-
-}ERoomType;
+const int MapSize = 100;
 
 void displayMap(const ERoomType* map)
 {
+	std::cout << std::endl;
+
 	for (size_t x = 0; x < MapSize; x++)
 	{
 		for (size_t y = 0; y < MapSize; y++)
@@ -29,6 +21,7 @@ void displayMap(const ERoomType* map)
 		}
 		std::cout << std::endl;
 	}
+	std::cout << std::endl;
 }
 
 void addRandomRooms(ERoomType* map, int roomAmount, ERoomType roomType)
@@ -45,51 +38,75 @@ void addRandomRooms(ERoomType* map, int roomAmount, ERoomType roomType)
 	}
 }
 
-//(x * mapsize) + y
-
-
 int main()
 {
 	const int mapOverallSize = MapSize * MapSize;
-	srand(0);
-	ERoomType map[mapOverallSize] = { Empty };
-	addRandomRooms(map, mapOverallSize * 0.1f, ERoomType::Wall);
+	srand(10);
+	ERoomType map[mapOverallSize] = { ERoomType::Empty };
+	int position = GetRandomNumber(0, MapSize - 1);
+
+	bool edge = GetRandomNumber(0, 1);
+	bool xory = GetRandomNumber(0, 1);
+	int endPos = GetEndPosition(edge, position, MapSize, xory);
+	map[endPos] = ERoomType::End;
+
+	int startPos = mapOverallSize % 2 == 0 ? mapOverallSize * 0.5f + (MapSize * 0.5f) : mapOverallSize * 0.5f;
+
+	map[startPos] = ERoomType::Start;
+
+	MazeGeneration(map, MapSize, startPos);
 	displayMap(map);
 
+	auto endcell = AStar(map, startPos, endPos, MapSize);
 
-	int wallAmount = mapOverallSize * 0.4f;
-	int itemAmount = mapOverallSize * 0.05f;
-	int hostileAmount = mapOverallSize * 0.35f;
-
-	int wallUnits = wallAmount / wallAmount;
-
-	bool xory = (rand() % 2);
-
-	int position = (rand() % MapSize);
-
-	int otherpos = 0;
-
-	//x
-	//if (xory)
+	while(true)
 	{
-		bool up = (rand() % 2);
-
-		if (up)
+		endcell = endcell->parent;
+		if (endcell == nullptr)
 		{
-			otherpos = position;
+			break;
 		}
-		else
-		{
-			otherpos = (mapOverallSize - MapSize) + position;
-		}
-	}
-	//y
-	//else
-	{
-		int leftorright = ((MapSize - 1) * position) + (rand() % 2);
 
-			otherpos = leftorright;
+		auto position = endcell->position;
+		//std::cout << endcell->position << std::endl;
+		map[position] = ERoomType::optimal;
+
 	}
 
-	//std::cout << endy;
+
+
+	////addRandomRooms(map, mapOverallSize * 0.1f, ERoomType::Wall);
+
+	//int wallOrigins = mapOverallSize * 0.1f;
+
+	//for (int i = 0; i < wallOrigins; i++)
+	//{
+	//	position = GetRandomNumber(0, MapSize);
+
+	//	edge = GetRandomNumber(0, 2);
+	//	xory = GetRandomNumber(0, 2);
+	//	int wallOriginPos = GetEndPosition(edge, position, MapSize, xory);
+
+	//	while (map[wallOriginPos] != ERoomType::Empty)
+	//	{
+	//		position = GetRandomNumber(0, MapSize);
+
+	//		edge = GetRandomNumber(0, 2);
+	//		xory = GetRandomNumber(0, 2);
+	//		wallOriginPos = GetEndPosition(edge, position, MapSize, xory);
+	//	}
+
+	//	map[wallOriginPos] = ERoomType::Wall;
+	//}
+
+	//int wallAmount = mapOverallSize * 0.4f;
+	//int itemAmount = mapOverallSize * 0.05f;
+	//int hostileAmount = mapOverallSize * 0.35f;
+
+	//int wallUnits = wallAmount / wallAmount;
+
+
+
+	displayMap(map);
+	//std::cout << map[pos];
 }
