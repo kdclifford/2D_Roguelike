@@ -3,7 +3,7 @@
 #include <set>
 #include <algorithm>
 
-static const int GetEndPosition(bool edge, int pos, int MapSize, bool xPos)
+static int GetEndPosition(bool edge, int pos, int MapSize, bool xPos)
 {
 	if (pos >= MapSize)
 	{
@@ -25,13 +25,12 @@ static const int GetEndPosition(bool edge, int pos, int MapSize, bool xPos)
 	return (MapSize * pos) + (edge * (MapSize - 1));
 }
 
-static const int GetNextWallPosition(int MapSize, EDirection direction, int position)
+static int GetNextWallPosition(int MapSize, EDirection direction, int position, int mapOverallSize)
 {
-	const int mapOverallSize = MapSize * MapSize;
 
 	int newPositon = -1;
 
-	if (position > mapOverallSize || position < 0)
+	if (position >= mapOverallSize || position < 0)
 	{
 		return -1;
 	}
@@ -59,15 +58,21 @@ static const int GetNextWallPosition(int MapSize, EDirection direction, int posi
 		newPositon = position + MapSize;
 	}
 
-	return (newPositon <= mapOverallSize && newPositon >= 0) ? newPositon : -1;
+	return (newPositon < mapOverallSize && newPositon >= 0) ? newPositon : -1;
 }
 
-static const int GetRandomNumber(int min, int max)
+
+static int GetNextWallPosition(int MapSize, EDirection direction, int position)
+{
+	return GetNextWallPosition(MapSize, direction, position, MapSize * MapSize);
+}
+
+static int GetRandomNumber(int min, int max)
 {
 	return (rand() % (max - min + 1)) + min;
 }
 
-const std::set<int> GetAvailbleNeighbourCells(int position, int MapSize)
+static std::set<int> GetAvailbleNeighbourCells(int position, int MapSize)
 {
 	std::set<int> cells;
 
@@ -83,7 +88,7 @@ const std::set<int> GetAvailbleNeighbourCells(int position, int MapSize)
 	return cells;
 }
 
-int getElementByIndex(const std::set<int>& mySet, size_t index) {
+static int getElementByIndex(const std::set<int>& mySet, size_t index) {
 	if (index < mySet.size()) {
 		auto it = mySet.begin();
 		std::advance(it, index);
@@ -94,13 +99,14 @@ int getElementByIndex(const std::set<int>& mySet, size_t index) {
 	}
 }
 
-void MazeGeneration(ERoomType* map, int MapSize, int startPoint)
+static std::vector<ERoomType> MazeGeneration(int MapSize, int startPoint)
 {
+	std::vector<ERoomType> map(MapSize * MapSize, ERoomType::Empty);
 	int nextPosition = startPoint;
 
 	std::set<int> otherAvailbleCells;
 
-	std::set<int> availbleCells = GetAvailbleNeighbourCells(nextPosition, MapSize);
+	std::set<int> availbleCells;
 
 	while (true)
 	{
@@ -145,17 +151,6 @@ void MazeGeneration(ERoomType* map, int MapSize, int startPoint)
 			availbleCells.erase(wallPosition);
 		}
 
-		//if (availbleCells.size() > 2 && !otherAvailbleCells.empty())
-		//{
-		//	int wallPosition = getElementByIndex(availbleCells, GetRandomNumber(0, availbleCells.size() - 1));
-		//	map[wallPosition] = ERoomType::Wall;
-		//	availbleCells.erase(wallPosition);
-
-		//	wallPosition = getElementByIndex(availbleCells, GetRandomNumber(0, availbleCells.size() - 1));
-		//	map[wallPosition] = ERoomType::Wall;
-		//	availbleCells.erase(wallPosition);
-		//}
-
 		nextPosition = getElementByIndex(availbleCells, GetRandomNumber(0, availbleCells.size() - 1));
 		map[nextPosition] = ERoomType::Path;
 		availbleCells.erase(nextPosition);
@@ -163,58 +158,61 @@ void MazeGeneration(ERoomType* map, int MapSize, int startPoint)
 		otherAvailbleCells.insert(availbleCells.begin(), availbleCells.end());
 		availbleCells.clear();
 	}
+
+	return map;
 }
 
 class Cell
 {
 public:
+
+	Cell(int _f, int _h, int _g, int _pos) { f = _f; h = _h; g = _g; position = _pos; };
 	Cell* parent;
 	int f;
+	int h;
 	int g = 1;
 	int position;
 };
 
-int FindDistance(int pos1, int pos2)
+static int FindDistance(int pos1, int pos2, int mapsize)
 {
-	return abs(pos1 - pos2);
+	int dis = floor(abs(pos1 - pos2) / mapsize);
+	int remainder = abs(pos1 - pos2) % mapsize;
+
+
+	return remainder + dis;
 }
 
-int FindF(int h)
+static void SortList(std::deque<Cell*>& list)
 {
-	return h + 1;
+	std::sort(list.begin(), list.end(), [](const Cell* a, const Cell* b)
+		{
+			return a->f < b->f;
+		});
 }
 
-//bool find(std::deque<Cell*> q)
-//{
-//	std::deque<Cell*>::iterator itr;
-//	itr = find(q.begin(), q.end(), 2);
-//	if (itr != q.end())
-//	{
-//		return true;
-//	}
-//
-//	return false;
-//}
+static void SortClosedList(std::deque<Cell*>& list)
+{
+	std::sort(list.begin(), list.end(), [](const Cell* a, const Cell* b)
+		{
+			return a->h < b->h;
+		});
+}
 
 
-Cell* AStar(ERoomType* map, int start, int end, int MapSize)
+static Cell* AStar(const std::vector<ERoomType>& map, int start, int end, int MapSize, ERoomType room = ERoomType::Wall)
 {
 	std::deque<Cell*> closedList;
 	std::deque<Cell*> openList;
 
-	Cell* startCell = new Cell();
-
-	startCell->position = start;
-	startCell->f = FindDistance(startCell->position, end);
-	startCell->g = 0;
+	const int startDistance = FindDistance(start, end, MapSize);
+	Cell* startCell = new Cell(startDistance, startDistance, 0, start);
 
 	openList.push_back(startCell);
 
 	while (!openList.empty())
 	{
-		std::sort(openList.begin(), openList.end(), [](const Cell* a, const Cell* b) {
-			return a->f < b->f;
-			});
+		SortList(openList);
 		auto q = openList.front();
 		openList.pop_front();
 		std::set<int> negihbours;
@@ -222,21 +220,20 @@ Cell* AStar(ERoomType* map, int start, int end, int MapSize)
 
 		for (const auto cell : GetAvailbleNeighbourCells(q->position, MapSize))
 		{
-			if (map[cell] == ERoomType::Path || map[cell] == ERoomType::End || map[cell] == ERoomType::Empty)
+			if (map[cell] < room)
 			{
 				negihbours.insert(cell);
 			}
 		}
 
+		bool skip = false;
 		for (const auto cell : negihbours)
 		{
-			bool skip = false;
-
-			Cell* newCell = new Cell();
+			skip = false;
+			const int distance = FindDistance(cell, end, MapSize);
+			const int parentCost = q->g;
+			Cell* newCell = new Cell(distance + parentCost, distance, parentCost + 1, cell);
 			newCell->parent = q;
-			newCell->position = cell;
-			newCell->g = q->g + 1;
-			newCell->f = newCell->g + FindDistance(newCell->position, end);
 
 			for (auto it = openList.begin(); it != openList.end(); ++it)
 			{
@@ -268,14 +265,24 @@ Cell* AStar(ERoomType* map, int start, int end, int MapSize)
 			}
 		}
 
-		closedList.push_back(q);
+		if (!skip)
+		{
+			closedList.push_back(q);
+		}
+
 
 		if (found)
 		{
 			break;
 		}
-
-
 	}
+
+	if (openList.empty())
+	{
+		SortClosedList(closedList);
+
+		openList.push_back(closedList.front());
+	}
+
 	return openList.back();
 }

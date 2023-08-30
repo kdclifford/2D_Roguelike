@@ -29,13 +29,13 @@ EDirection operator++(EDirection& e, int) {
 enum ERoomType
 {
 	Empty = 0, // 10%
+	Start,
+	End,
 	Path,
-	optimal,
+	OptimalPath,
 	Item, // 5%
 	Hostile, // 35%
 	//Shop, // 1 per floor
 	Wall, // 50%
-	Start,
-	End,
 	AmountOfRooms
 };
