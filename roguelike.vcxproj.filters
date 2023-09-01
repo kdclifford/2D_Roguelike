@@ -13,6 +13,18 @@
     <ClCompile Include="SourceCode\roguelike.cpp">
       <Filter>SourceCode</Filter>
     </ClCompile>
+    <ClCompile Include="SourceCode\KeyManager.cpp">
+      <Filter>SourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceCode\Settings.cpp">
+      <Filter>SourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceCode\Controller.cpp">
+      <Filter>SourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceCode\Keyboard.cpp">
+      <Filter>SourceCode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SourceCode\MapPoints.h">
@@ -21,5 +33,20 @@
     <ClInclude Include="SourceCode\EDirection.h">
       <Filter>SourceCode</Filter>
     </ClInclude>
+    <ClInclude Include="SourceCode\KeyManager.h">
+      <Filter>SourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceCode\Settings.h">
+      <Filter>SourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceCode\Controller.h">
+      <Filter>SourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceCode\Keyboard.h">
+      <Filter>SourceCode</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
