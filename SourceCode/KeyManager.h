@@ -1,3 +1,5 @@
+#pragma once
+
 #include <allegro5/keyboard.h>
 #include <unordered_map>
 #define KEY_SEEN     1
@@ -12,28 +14,6 @@ enum EButton
 	Exit,
 	Count
 };
-
-//Xbox Controller
-
-enum EXboxButton
-{
-	A = 0,
-	B,
-	X,
-	Y,
-	RightBumper,
-	LeftBumper,
-	RightStick,
-	LeftStick,
-	Share,
-	Start,
-	DpadRight,
-	DpadLeft,
-	DpadDown,
-	DpadUp,
-	XboxCount
-};
-
 
 class KeyManager
 {
